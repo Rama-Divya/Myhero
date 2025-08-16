@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>VikramVerse – Birthday Celebration</title>
+
+  <!-- Google font -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+
+  <!-- Tailwind (optional, used for utility classes in markup) -->
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet" />
+
+  <!-- Font Awesome (icons) -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+
+  <!-- external confetti lib -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
+
+  <!-- main stylesheet -->
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="overflow-x-hidden">
+  <!-- Background music (local file; put file at audio/until i found you.mp3) -->
+  <audio id="bgAudio" preload="auto" loop>
+    <source src="audio/until i found you.mp3" type="audio/mpeg" />
+    Your browser does not support the audio element.
+  </audio>
+
+  <!-- audio toggle -->
+  <div class="audio-controls" id="audioToggle" title="Toggle audio">
+    <i class="fas fa-volume-up"></i>
+  </div>
+
+  <!-- Photo rails (left & right) -->
+  <div class="photo-rail left" aria-hidden="true">
+    <figure class="photo-pin"><img src="images/here.jpg" alt="photo"><span class="pin"></span></figure>
+    <figure class="photo-pin"><img src="images/love.jpg" alt="photo"><span class="pin"></span></figure>
+    <figure class="photo-pin"><img src="images/nature.jpg" alt="photo"><span class="pin"></span></figure>
+  </div>
+
+  <div class="photo-rail right" aria-hidden="true">
+    <figure class="photo-pin"><img src="images/tohere.jpg" alt="photo"><span class="pin"></span></figure>
+    <figure class="photo-pin"><img src="images/fam.jpg" alt="photo"><span class="pin"></span></figure>
+    <figure class="photo-pin"><img src="images/animals.jpg" alt="photo"><span class="pin"></span></figure>
+  </div>
+
+  <!-- Landing -->
+  <section id="landing" class="landing-section">
+    <div class="pulse-bg">
+      <div class="pulse-circle c1"></div>
+      <div class="pulse-circle c2"></div>
+      <div class="pulse-circle c3"></div>
+      <div class="pulse-circle c4"></div>
+    </div>
+
+    <h1 class="text-5xl md:text-6xl font-bold mb-6 text-center slide-in-up">
+      <span class="bg-gradient-to-r from-blue-400 to-blue-600 text-transparent bg-clip-text">VikramVerse</span>
+      <span class="block text-2xl mt-2 text-blue-300">Birthday Celebration</span>
+    </h1>
+
+    <!-- Countdown -->
+    <div class="text-center mb-6 slide-in-up">
+      <h2 class="text-2xl md:text-3xl mb-4 text-blue-200">Counting down to Vikram's Birthday</h2>
+      <div id="countdown" class="countdown-container">
+        <div class="countdown-unit"><div id="days" class="countdown-value">00</div><div class="countdown-label">Days</div></div>
+        <div class="countdown-unit"><div id="hours" class="countdown-value">00</div><div class="countdown-label">Hours</div></div>
+        <div class="countdown-unit"><div id="minutes" class="countdown-value">00</div><div class="countdown-label">Minutes</div></div>
+        <div class="countdown-unit"><div id="seconds" class="countdown-value">00</div><div class="countdown-label">Seconds</div></div>
+      </div>
+    </div>
+
+    <div id="giftContainer" class="gift-container slide-in-up" title="Open the gift">
+      <div class="gift-box">
+        <div class="gift-lid"></div>
+        <div class="gift-bow">
+          <div class="bow-center"></div>
+          <div class="bow-loop"></div>
+          <div class="bow-loop"></div>
+          <div class="bow-loop"></div>
+        </div>
+        <div class="gift-content">🎁</div>
+        <div class="gift-text">Open Your Gift</div>
+      </div>
+    </div>
+
+    <p class="mt-6 text-blue-300 text-lg animate-pulse slide-in-up">Click to celebrate Vikram's Journey ✨</p>
+  </section>
+
+  <!-- Fan Wishes -->
+  <section id="fanwish" class="fanwish-section hidden">
+    <h2 class="section-title">Fan Wishes</h2>
+    <div class="wish-grid">
+      <div class="wish-card"><p>"Happiest Birthday Jaan🫶🏻 Love you the mostt!!"</p><p>- Divya (vikram_forever96)</p></div>
+      <div class="wish-card"><p>"Happiest Birthday My Love❤ Wishing you all the Happinesses and success. keep Shining my hero✨I Love you so much😘"</p><p>- vidya (aditi_vikram_my_world)</p></div>
+      <div class="wish-card"><p>"Happy birthday to the most captivating star in my sky! Your talent and charm inspire us all."</p><p>- Yamini (vikram_mee_love)</p></div>
+      <div class="wish-card"><p>"Wishing you a day as bright as your smile and a year filled with love, laughter, and endless success."</p><p>- Yamini (vikram_mee_love)</p></div>
+      <div class="wish-card"><p>"Here's to another year of magic on screen! 💌🌠"</p><p>- Yamini (vikram_mee_love)</p></div>
+
+      <div class="wish-card"><p>"Happy birthday vikram❤ have a great year and lots of love💌"</p><p>- Mounika (vikram__follower)</p></div>
+      <div class="wish-card"><p>"Happiest birthday to the king of vikramians 👑"</p><p>- Ammu (roshan_ammu_)</p></div>
+      <div class="wish-card"><p>"Happy birthday my hero 🫀 we support you forever 🫶🏻"</p><p>- Karthika (vikramaditi_editz)</p></div>
+      <div class="wish-card"><p>"Happy Birthday to my favourite star ✨ vikku anna You’re not just talented, but you have the most beautiful personality."</p><p>- girllly_fan_yjhjk</p></div>
+      <div class="wish-card"><p>"Wishing you endless joy, love, and success, today and always!"</p><p>- girllly_fan_yjhjk</p></div>
+
+      <div class="wish-card"><p>"I love the way you carry yourself with kindness and grace."</p><p>- girllly_fan_yjhjk</p></div>
+      <div class="wish-card"><p>"Happy birthday mera hero 😎😘"</p><p>- Hasna (vikram_ki_girll)</p></div>
+      <div class="wish-card"><p>"Happy Birthday Vikram 🥳🎂💕🤍"</p><p>- vikramsinghchauhan_officialfc</p></div>
+      <div class="wish-card"><p>"So proud of you and all your achievements!"</p><p>- Nate, South Africa</p></div>
+      <div class="wish-card"><p>"Lots of love from New Zealand!"</p><p>- Olivia, New Zealand</p></div>
+
+      <div class="wish-card"><p>"Keep shining, Vikram! 🌟"</p><p>- Asha, India</p></div>
+      <div class="wish-card"><p>"To more success and happiness — Happy Birthday!"</p><p>- Diego, Mexico</p></div>
+      <div class="wish-card"><p>"Your performances always make our day brighter."</p><p>- Lina, Russia</p></div>
+      <div class="wish-card"><p>"We love your kindness and dedication."</p><p>- Sam, South Africa</p></div>
+      <div class="wish-card"><p>"Celebrate big! You deserve the best 🎉"</p><p>- Mia, Australia</p></div>
+    </div>
+  </section>
+
+  <!-- Timeline -->
+  <section id="timeline" class="hidden timeline-section">
+    <h2 class="timeline-title">Vikram's Career Journey</h2>
+
+    <!-- TV Shows -->
+    <div class="category">
+      <h3 class="text-xl font-bold mb-4 ml-4"><i class="fas fa-tv mr-2"></i> TV Shows</h3>
+      <div class="category-container">
+        <div class="timeline-card">
+          <div class="image bg-qubool"></div>
+          <div class="title">Qubool Hai</div>
+          <div class="role">Imran Qureshi</div>
+        </div>
+        <div class="timeline-card">
+          <div class="image bg-hasina"></div>
+          <div class="title">Ek Hasina Thi</div>
+          <div class="role">Rishi</div>
+        </div>
+        <div class="timeline-card">
+          <div class="image bg-sav1"></div>
+          <div class="title">Savdhaan India Ep 9</div>
+          <div class="role">Gowtham</div>
+        </div>
+        <div class="timeline-card">
+          <div class="image bg-sav2"></div>
+          <div class="title">Savdhaan India Ep 43</div>
+          <div class="role">Arun</div>
+        </div>
+        <div class="timeline-card">
+          <div class="image bg-million"></div>
+          <div class="title">Million Dollar Girl</div>
+          <div class="role">Virat Thakur</div>
+        </div>
+        <div class="timeline-card">
+          <div class="image bg-twist"></div>
+          <div class="title">Twist Wala Love</div>
+          <div class="role">Farhan Ali</div>
+        </div>
+        <div class="timeline-card">
+          <div class="image bg-jaana"></div>
+          <div class="title">Jaana Na Dil Se Door</div>
+          <div class="role">Atharv</div>
+        </div>
+        <div class="timeline-card">
+          <div class="image bg-deewana"></div>
+          <div class="title">Ek Deewana Tha</div>
+          <div class="role">Vyom Bedi</div>
+        </div>
+        <div class="timeline-card">
+          <div class="image bg-jadu"></div>
+          <div class="title">Yehh Jadu Hai Jinn Ka</div>
+          <div class="role">Aman</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Movies -->
+    <div class="category mt-8">
+      <h3 class="text-xl font-bold mb-4 ml-4"><i class="fas fa-film mr-2"></i> Movies</h3>
+      <div class="category-container">
+        <div class="timeline-card">
+          <div class="image bg-perfect"></div>
+          <div class="title">The Perfect Girl</div>
+          <div class="role">Karthik</div>
+        </div>
+        <div class="timeline-card">
+          <div class="image bg-mardaani"></div>
+          <div class="title">Mardaani 2</div>
+          <div class="role">Anup Singhal</div>
+        </div>
+        <div class="timeline-card">
+          <div class="image bg-pooja">
+            <div class="image-placeholder">Pooja Meri Jaan Poster</div>
+          </div>
+          <div class="title">Pooja Meri Jaan (Soon)</div>
+          <div class="role">Aniket</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Web Series -->
+    <div class="category mt-8">
+      <h3 class="text-xl font-bold mb-4 ml-4"><i class="fas fa-globe mr-2"></i> Web Series</h3>
+      <div class="category-container">
+        <div class="timeline-card">
+          <div class="image bg-baarish"></div>
+          <div class="title">Baarish</div>
+          <div class="role">Aniket</div>
+        </div>
+        <div class="timeline-card">
+          <div class="image bg-chattis"></div>
+          <div class="title">Chattis aur Maina</div>
+          <div class="role">Chattis Singh</div>
+        </div>
+        <div class="timeline-card">
+          <div class="image bg-ramyug"></div>
+          <div class="title">Ramyug</div>
+          <div class="role">Bharat</div>
+        </div>
+        <div class="timeline-card">
+          <div class="image bg-rudra"></div>
+          <div class="title">Rudra</div>
+          <div class="role">Captain Ashok</div>
+        </div>
+        <div class="timeline-card">
+          <div class="image bg-raat"></div>
+          <div class="title">Raat Jawaan Hai</div>
+          <div class="role">Satwinder Singh</div>
+        </div>
+        <div class="timeline-card">
+          <div class="image bg-sena"></div>
+          <div class="title">Sena</div>
+          <div class="role">Karthik Sharma</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Music Videos -->
+    <div class="category mt-8">
+      <h3 class="text-xl font-bold mb-4 ml-4"><i class="fas fa-music mr-2"></i> Music Videos</h3>
+      <div class="category-container">
+        <div class="timeline-card">
+          <div class="image bg-deewane"></div>
+          <div class="title">Deewane Do</div>
+        </div>
+        <div class="timeline-card">
+          <div class="image bg-ishq"></div>
+          <div class="title">Ishq Mangda</div>
+        </div>
+        <div class="timeline-card">
+          <div class="image bg-bichad"></div>
+          <div class="title">Bichad Gaye</div>
+        </div>
+        <div class="timeline-card">
+          <div class="image bg-yehdil"></div>
+          <div class="title">Yeh Dil Kitni Baar</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Finale -->
+  <section id="finale" class="finale-section hidden">
+    <h2 class="text-3xl font-bold mb-8">🎉 Happy Birthday Vikram Singh Chauhan! 🎉</h2>
+    <div class="video-wrapper">
+      <video id="finalVideo" controls autoplay loop playsinline webkit-playsinline class="w-full max-w-3xl mx-auto rounded-lg shadow-2xl">
+        <source src="videos/edited_birthday_video.mp4" type="video/mp4" />
+        Your browser does not support the video tag.
+      </video>
+    </div>
+  <!-- Final fan message block added at last as requested -->
+    <div class="mt-12 text-blue-300 max-w-2xl mx-auto">
+      <p class="text-xl mb-4">From all your fans around the world, we wish you a spectacular birthday filled with joy, love, and success!</p>
+      <p class="text-lg">May this year bring you new opportunities, cherished memories, and continued growth.</p>
+    </div>
+  <!-- Font Awesome JS (optional) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
+
+  <!-- confetti lib (safe to include again before script) -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
+
+  <!-- main script -->
+  <script src="script.js"></script>
+</body>
+</html>
