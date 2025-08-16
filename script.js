@@ -29,6 +29,22 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  // AUTOPLAY FALLBACK: try to play background audio on first user gesture
+  (function setupAutoplayFallback() {
+    if (!bgAudio) return;
+    const tryPlayBgAudio = (e) => {
+      // attempt to play once on first user gesture
+      bgAudio.play().catch(() => {
+        // failed to autoplay (expected on some browsers) — no further action
+      });
+      // remove the listeners after first gesture
+      document.removeEventListener('click', tryPlayBgAudio);
+      document.removeEventListener('touchstart', tryPlayBgAudio);
+    };
+    document.addEventListener('click', tryPlayBgAudio, { once: true });
+    document.addEventListener('touchstart', tryPlayBgAudio, { once: true });
+  })();
+
   // show/hide photo rails depending on landing visibility
   function updateRailsVisibility() {
     const landingHidden = landing && landing.classList.contains('hidden');
@@ -46,12 +62,25 @@ document.addEventListener('DOMContentLoaded', () => {
   // initialize rails visibility immediately
   updateRailsVisibility();
 
-  // countdown to Aug 19
+  // ====== COUNTDOWN to Aug 19 (IST) - uses IST regardless of client timezone ======
+  function computeAug19TargetUTCms(referenceDate = new Date()) {
+    // Determine year relative to IST "referenceDate"
+    const nowUTC = new Date(referenceDate.getTime() + referenceDate.getTimezoneOffset() * 60000);
+    const nowIST = new Date(nowUTC.getTime() + (330 * 60000)); // +5:30
+    let year;
+    if (nowIST.getMonth() > 7 || (nowIST.getMonth() === 7 && nowIST.getDate() > 19)) {
+      year = nowIST.getFullYear() + 1;
+    } else {
+      year = nowIST.getFullYear();
+    }
+    // Aug 19 00:00 IST -> UTC = Aug 18 18:30 UTC (same year variable)
+    return Date.UTC(year, 7, 18, 18, 30, 0);
+  }
+
   function updateCountdown() {
-    const now = new Date();
-    const year = (now.getMonth() > 7 || (now.getMonth() === 7 && now.getDate() > 19)) ? now.getFullYear() + 1 : now.getFullYear();
-    const target = new Date(year, 7, 19, 0, 0, 0);
-    const diff = target - now;
+    const nowMs = Date.now();
+    const targetUTCms = computeAug19TargetUTCms(new Date(nowMs));
+    const diff = Math.max(0, targetUTCms - nowMs);
 
     const d = Math.max(0, Math.floor(diff / (1000 * 60 * 60 * 24)));
     const h = Math.max(0, Math.floor((diff / (1000 * 60 * 60)) % 24));
@@ -62,6 +91,8 @@ document.addEventListener('DOMContentLoaded', () => {
     if (hoursEl) hoursEl.textContent = String(h).padStart(2, '0');
     if (minutesEl) minutesEl.textContent = String(m).padStart(2, '0');
     if (secondsEl) secondsEl.textContent = String(s).padStart(2, '0');
+
+    return nowMs >= targetUTCms;
   }
   updateCountdown();
   setInterval(updateCountdown, 1000);
@@ -70,6 +101,7 @@ document.addEventListener('DOMContentLoaded', () => {
   if (finalVideo) {
     finalVideo.volume = 0.95;
     finalVideo.muted = false;
+    finalVideo.loop = false; // ensure video plays once, not in loop
     finalVideo.addEventListener('play', () => {
       if (bgAudio && !bgAudio.paused) {
         try { bgAudio.pause(); } catch(e){}
@@ -98,12 +130,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // small enhancement: give pinned photos a casual scattered look and hover interaction
   photoPins.forEach((pin, i) => {
-    // random tiny tilt between -6 and 6 degrees (slightly smaller range for neater look)
     const tilt = (Math.random() * 12) - 6;
     pin.style.transform = `rotate(${tilt}deg)`;
     pin.style.transition = 'transform .32s ease, box-shadow .32s ease';
     pin.style.willChange = 'transform';
-    // staggered entrance
     pin.style.opacity = '0';
     pin.style.transition += ', opacity .45s ease';
     setTimeout(() => { pin.style.opacity = '1'; }, i * 90);
@@ -120,7 +150,178 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
+  // ============================
+  // FANWISH LOCK / UNLOCK LOGIC (updated)
+  // - no visible dev UI; only ?dev=1 works for dev unlock
+  // - overlay shows live countdown
+  // - stronger blur by default
+  // - unblur animation + confetti on automatic unlock
+  // ============================
+  const WISH_UNLOCK_KEY = 'fanwishUnlocked';
+
+  function isDevAllowed() {
+    try {
+      const params = new URLSearchParams(window.location.search);
+      return params.get('dev') === '1';
+    } catch (e) {
+      return false;
+    }
+  }
+
+  function isPersistentlyUnlocked() {
+    try {
+      return localStorage.getItem(WISH_UNLOCK_KEY) === '1';
+    } catch (e) { return false; }
+  }
+
+  function persistUnlock() {
+    try { localStorage.setItem(WISH_UNLOCK_KEY, '1'); } catch (e) {}
+  }
+
+  function clearPersistentUnlock() {
+    try { localStorage.removeItem(WISH_UNLOCK_KEY); } catch(e) {}
+  }
+
+  function isPastAug19IST() {
+    const nowMs = Date.now();
+    const targetUTCms = computeAug19TargetUTCms(new Date(nowMs));
+    return nowMs >= targetUTCms;
+  }
+
+  // Creates or updates overlay element inside a wish-card
+  function ensureLockOverlay(card) {
+    let overlay = card.querySelector('.wish-lock-overlay');
+    if (!overlay) {
+      overlay = document.createElement('div');
+      overlay.className = 'wish-lock-overlay';
+      // content will be updated by updateLockOverlays()
+      card.appendChild(overlay);
+    }
+    return overlay;
+  }
+
+  // Apply lock class to all wish cards and add overlay countdown
+  function applyLockToWishes() {
+    document.querySelectorAll('.wish-card').forEach(card => {
+      card.classList.add('locked');
+      card.classList.remove('just-unlocked');
+      ensureLockOverlay(card);
+      // keep visible class for entrance animations; locked handles interactions
+    });
+    updateLockOverlays(); // immediate update of countdowns
+  }
+
+  // Remove overlay element (if any)
+  function removeLockOverlay(card) {
+    const overlay = card.querySelector('.wish-lock-overlay');
+    if (overlay) overlay.remove();
+  }
+
+  // Remove lock class and animate unblur + confetti
+  function removeLockFromWishes(reason) {
+    const cards = Array.from(document.querySelectorAll('.wish-card'));
+    if (cards.length === 0) return;
+
+    // remove locked and add just-unlocked to trigger CSS keyframe
+    cards.forEach(card => {
+      card.classList.remove('locked');
+      // ensure overlay will be removed with fade
+      const overlay = card.querySelector('.wish-lock-overlay');
+      if (overlay) {
+        overlay.classList.add('overlay-fadeout');
+        setTimeout(() => removeLockOverlay(card), 520);
+      }
+      // add animation class so unblur effect plays
+      card.classList.add('just-unlocked');
+      // remove animation class after it finishes
+      setTimeout(() => card.classList.remove('just-unlocked'), 1000);
+    });
+
+    // small confetti burst when unlocking automatically or by dev flag
+    try {
+      confetti({ particleCount: 220, spread: 120, origin: { y: 0.45 }, colors: ['#1a73e8','#4285f4','#64b5f6','#ffd700'] });
+    } catch (e) {
+      // confetti may not be loaded in some contexts; ignore errors
+    }
+
+    console.log('[fanwish] unlocked — reason:', reason);
+  }
+
+  // Update overlay countdown text for all locked cards
+  function updateLockOverlays() {
+    const nowMs = Date.now();
+    const targetUTCms = computeAug19TargetUTCms(new Date(nowMs));
+    const diff = Math.max(0, targetUTCms - nowMs);
+
+    const d = Math.max(0, Math.floor(diff / (1000 * 60 * 60 * 24)));
+    const h = Math.max(0, Math.floor((diff / (1000 * 60 * 60)) % 24));
+    const m = Math.max(0, Math.floor((diff / (1000 * 60)) % 60));
+    const s = Math.max(0, Math.floor((diff / 1000) % 60));
+
+    const human = diff > 0
+      ? `Unlocks in ${String(d).padStart(2,'0')}d ${String(h).padStart(2,'0')}h ${String(m).padStart(2,'0')}m ${String(s).padStart(2,'0')}s`
+      : 'Unlocking...';
+
+    document.querySelectorAll('.wish-card.locked').forEach(card => {
+      const overlay = ensureLockOverlay(card);
+      overlay.innerHTML = `
+        <div class="overlay-content">
+          <div class="overlay-icon">🔒</div>
+          <div class="overlay-text">${human}</div>
+          <div class="overlay-note">Available on Aug 19 (IST)</div>
+        </div>
+      `;
+    });
+  }
+
+  // Decide initial state
+
+  // ONE-LINER SAFEGUARD:
+  // If dev param is NOT present and Aug 19 hasn't arrived yet, clear any persisted dev unlock so wishes re-lock on reload.
+  if (!new URLSearchParams(location.search).has("dev") && !isPastAug19IST()) localStorage.removeItem(WISH_UNLOCK_KEY);
+
+  function checkLockStateAndApply() {
+    if (isPersistentlyUnlocked()) {
+      removeLockFromWishes('persisted-unlock');
+      return;
+    }
+
+    if (isDevAllowed()) {
+      // dev param present -> unlock silently (no visible controls)
+      persistUnlock();
+      removeLockFromWishes('dev-param-unlock');
+      return;
+    }
+
+    if (isPastAug19IST()) {
+      persistUnlock();
+      removeLockFromWishes('date-Aug19-IST');
+      return;
+    }
+
+    // still locked
+    applyLockToWishes();
+  }
+
+  checkLockStateAndApply();
+
+  // periodic checks:
+  // - update overlays countdown every second (so countdown in overlay stays live)
+  // - check date every 15s to automatically unlock when time arrives
+  const overlayInterval = setInterval(updateLockOverlays, 1000);
+
+  const unlockChecker = setInterval(() => {
+    if (!isPersistentlyUnlocked() && isPastAug19IST()) {
+      persistUnlock();
+      removeLockFromWishes('date-Aug19-IST (periodic-check)');
+      clearInterval(unlockChecker);
+      clearInterval(overlayInterval);
+    }
+  }, 15 * 1000);
+
+  // ============================
   // gift click sequence (gift open sound removed as requested)
+  // ============================
   if (giftContainer) {
     giftContainer.addEventListener('click', () => {
       // Start background music (user gesture)
@@ -176,6 +377,7 @@ document.addEventListener('DOMContentLoaded', () => {
           if (finalVideo) {
             finalVideo.muted = false;
             finalVideo.volume = 0.95;
+            finalVideo.loop = false;
             finalVideo.play().catch(err => console.error('Video play failed:', err));
           }
         }
@@ -188,14 +390,16 @@ document.addEventListener('DOMContentLoaded', () => {
     const card = e.target.closest('.wish-card');
     if (!card) return;
     const rect = card.getBoundingClientRect();
-    confetti({
-      particleCount: 26,
-      spread: 55,
-      origin: {
-        x: (rect.left + rect.width / 2) / window.innerWidth,
-        y: (rect.top + 15) / window.innerHeight
-      },
-      colors: ['#1a73e8','#4285f4','#64b5f6','#ffd700']
-    });
+    try {
+      confetti({
+        particleCount: 26,
+        spread: 55,
+        origin: {
+          x: (rect.left + rect.width / 2) / window.innerWidth,
+          y: (rect.top + 15) / window.innerHeight
+        },
+        colors: ['#1a73e8','#4285f4','#64b5f6','#ffd700']
+      });
+    } catch (e) {}
   });
 });

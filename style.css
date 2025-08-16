@@ -37,7 +37,7 @@ body.video-active {
   transition: transform .25s ease, box-shadow .25s ease;
 }
 .countdown-unit:hover { transform: translateY(-6px) scale(1.04); box-shadow: 0 12px 40px rgba(66,133,244,0.28); }
-.countdown-value { font-size:2rem; font-weight:700; background: linear-gradient(135deg,var(--primary-blue),var(--accent-blue)); -webkit-background-clip:text; background-clip:text; color:transparent; margin-bottom:.15rem; text-shadow:0 0 8px rgba(100,181,246,0.45);}
+.countdown-value { font-size:2rem; font-weight:700; background: linear-gradient(135deg,var(--primary-blue),var(--accent-blue)); -webkit-background-clip:text; background-clip:text; color:transparent; margin-bottom:.15rem; text-shadow:0 0 8px rgba(100,181,246,0.45); }
 .countdown-label { font-size:.8rem; text-transform:uppercase; letter-spacing:1.8px; color:var(--accent-blue); }
 
 /* Pulse */
@@ -76,11 +76,82 @@ body.video-active {
 @media (max-width:600px){ .wish-grid{ grid-template-columns: repeat(2, minmax(120px,1fr)); } }
 @media (max-width:420px){ .wish-grid{ grid-template-columns: 1fr; } }
 
-.wish-card{ background: rgba(26,115,232,0.06); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); padding:1.25rem; border-radius:12px; box-shadow: 0 8px 32px rgba(0,0,0,0.28); border:1px solid rgba(66,133,244,0.08); cursor:pointer; transition: transform .28s ease, box-shadow .28s ease, opacity .28s ease; transform: translateY(12px); opacity:0; transform-origin: center; }
+.wish-card{
+  background: rgba(26,115,232,0.06);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  padding:1.25rem;
+  border-radius:12px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.28);
+  border:1px solid rgba(66,133,244,0.08);
+  cursor:pointer;
+  transition: transform .28s ease, box-shadow .28s ease, opacity .28s ease, filter .6s ease;
+  transform: translateY(12px);
+  opacity:0;
+  transform-origin: center;
+  position:relative;
+  overflow:hidden;
+}
+/* VISIBLE */
 .wish-card.visible{ transform: translateY(0); opacity:1; }
 .wish-card:hover { transform: translateY(-8px) scale(1.04); box-shadow: 0 18px 50px rgba(66,133,244,0.22); z-index: 6; }
 .wish-card p:first-child{ font-style:italic; color:#fff; line-height:1.5; margin-bottom:.6rem; }
 .wish-card p:last-child{ color:var(--accent-blue); font-weight:600; }
+
+/* ===== LOCKED STATE =====
+   stronger blur, overlay with countdown and lock icon, disable pointer interactions until unlock
+*/
+.wish-card.locked {
+  filter: blur(8px) grayscale(.18);
+  pointer-events: none;
+  user-select: none;
+  -webkit-user-select: none;
+  transition: filter .45s ease, opacity .35s ease;
+  opacity: 0.98;
+}
+
+/* overlay element (created by JS) */
+.wish-lock-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 30;
+  pointer-events: none;
+  border-radius: 12px;
+  transition: opacity .48s ease;
+}
+.wish-lock-overlay .overlay-content {
+  text-align: center;
+  padding: 10px 12px;
+  border-radius: 10px;
+  -webkit-backdrop-filter: blur(4px);
+  backdrop-filter: blur(4px);
+  background: linear-gradient(180deg, rgba(2,6,23,0.45), rgba(2,6,23,0.62));
+  border: 1px solid rgba(255,255,255,0.06);
+  color: #fff;
+  display: inline-block;
+  min-width: 160px;
+}
+.wish-lock-overlay .overlay-icon { font-size: 22px; margin-bottom: 6px; }
+.wish-lock-overlay .overlay-text { font-weight:700; font-size: 0.95rem; margin-bottom: 4px; color: var(--accent-blue); }
+.wish-lock-overlay .overlay-note { font-size: 0.75rem; opacity: .85; color: #cfe9ff; }
+
+/* overlay fadeout (used when unlocking) */
+.wish-lock-overlay.overlay-fadeout { opacity: 0; transform: translateY(-6px); }
+
+/* ===== UNBLUR ANIMATION =====
+   played when unlocking: smooth removal of blur and gentle scale
+*/
+@keyframes unblur {
+  0% { filter: blur(8px) grayscale(.18); transform: scale(0.997); }
+  60% { filter: blur(2px) grayscale(.06); transform: scale(1.002); }
+  100% { filter: none; transform: scale(1); }
+}
+.wish-card.just-unlocked {
+  animation: unblur .9s cubic-bezier(.22,.9,.3,1) forwards;
+}
 
 /* Timeline - compact layout so categories appear together (wrap cards) */
 .timeline-section{ padding:2.2rem 1rem; background:transparent; position:relative; }
@@ -133,7 +204,7 @@ body.video-active {
 .timeline-card .title{ text-align:center; padding:0.6rem 0.6rem 0.25rem; font-weight:700; font-size:1rem; color:#fff; }
 .timeline-card .role{ text-align:center; padding:0 0.6rem 0.8rem; font-style:italic; color:var(--accent-blue); font-size:.9rem; }
 
-/* Horizontal timeline container for scrollable rows */
+/* Horizontal timeline container for scrollable rows (unchanged) */
 .category-container {
   display: flex;
   overflow-x: auto;
@@ -200,7 +271,7 @@ body.video-active {
 .bg-million{ background-image:url('images/million.jpg'); }
 .bg-twist{ background-image:url('images/twist.jpg'); }
 .bg-jaana{ background-image:url('images/jaana.jpg'); }
-.bg-deewana{ background-image:url('images/deewana.jpg'); }
+.bg-deewana{ background-image:url('images/deewane.jpg'); }
 .bg-baarish{ background-image:url('images/baarish.jpg'); }
 .bg-jadu{ background-image:url('images/jadu.jpg'); }
 .bg-perfect{ background-image:url('images/perfectgirl.jpg'); }
@@ -298,6 +369,7 @@ body.video-active {
   z-index: 6;
   pointer-events: auto;
   user-select: none;
+  -webkit-user-select: none;
 }
 
 /* left and right positions */
